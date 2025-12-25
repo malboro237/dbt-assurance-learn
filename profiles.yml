@@ -1,0 +1,13 @@
+assurance_learn:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: postgres
+      port: 5432
+      user: postgres
+      password: dbt
+      dbname: dbt_learn
+      schema: public
+      threads: 4
+

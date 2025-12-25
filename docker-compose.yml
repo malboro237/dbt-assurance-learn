@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres-dbt
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: dbt
+      POSTGRES_DB: dbt_learn
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  dbt:
+    build: .
+    container_name: dbt-assurance
+    volumes:
+      - .:/dbt
+    environment:
+      DBT_PROFILES_DIR: /dbt
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:

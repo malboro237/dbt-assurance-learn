@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: silver
+    schema: silver
+    description: "Tables sources préparées par Spark"
+    tables:
+      - name: clients
+        description: "Clients"
+      - name: contrats
+        description: "Contrats"
+      - name: sinistres
+        description: "Sinistres"

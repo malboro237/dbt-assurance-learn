@@ -1,0 +1,6 @@
+type_sinistre,gravite,delai_traitement_jours
+Accident,haute,30
+Vol,haute,45
+Dégât des eaux,moyenne,20
+Incendie,haute,60
+Bris de glace,basse,10

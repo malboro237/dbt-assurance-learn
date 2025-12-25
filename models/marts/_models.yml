@@ -1,0 +1,40 @@
+version: 2
+
+models:
+  - name: dim_clients
+    description: "Dimension clients avec segmentation"
+    columns:
+      - name: client_id
+        description: "Clé primaire"
+        tests:
+          - unique
+          - not_null
+      - name: segment
+        description: "Segment commercial"
+        tests:
+          - accepted_values:
+              values: ['Gold', 'Silver', 'Bronze']
+
+  - name: fct_contrats
+    description: "Table de faits contrats"
+    columns:
+      - name: contrat_id
+        description: "Clé primaire"
+        tests:
+          - unique
+          - not_null
+      - name: client_id
+        tests:
+          - not_null
+
+  - name: fct_sinistres
+    description: "Table de faits sinistres"
+    columns:
+      - name: sinistre_id
+        description: "Clé primaire"
+        tests:
+          - unique
+          - not_null
+      - name: contrat_id
+        tests:
+          - not_null

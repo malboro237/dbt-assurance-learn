@@ -1,0 +1,36 @@
+name: 'assurance_learn'
+version: '1.0.0'
+
+profile: 'assurance_learn'
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+test-paths: ["tests"]
+snapshot-paths: ["snapshots"]
+macro-paths: ["macros"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  assurance_learn:
+    staging:
+      +schema: staging
+      +materialized: view
+    intermediate:
+      +schema: intermediate
+      +materialized: view
+    marts:
+      +schema: gold
+      +materialized: table
+
+
+seeds:  
+  assurance_learn:
+    +schema: seeds
+
+
+snapshots:  
+  assurance_learn:
+    +schema: snapshots

@@ -1,0 +1,117 @@
+name: dbt CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  dbt-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: dbt
+          POSTGRES_DB: dbt_learn
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dbt
+        run: pip install dbt-core dbt-postgres
+
+      - name: Create profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          echo "
+          assurance_learn:
+            target: ci
+            outputs:
+              ci:
+                type: postgres
+                host: localhost
+                port: 5432
+                user: postgres
+                password: dbt
+                dbname: dbt_learn
+                schema: public
+                threads: 4
+          " > ~/.dbt/profiles.yml
+
+      - name: Create source tables
+        run: |
+          PGPASSWORD=dbt psql -h localhost -U postgres -d dbt_learn << EOF
+          CREATE SCHEMA IF NOT EXISTS silver;
+          
+          CREATE TABLE silver.clients (
+              client_id VARCHAR(10) PRIMARY KEY,
+              nom VARCHAR(100),
+              prenom VARCHAR(100),
+              email VARCHAR(200),
+              adresse VARCHAR(300),
+              date_naissance DATE,
+              date_creation TIMESTAMP DEFAULT NOW()
+          );
+          
+          CREATE TABLE silver.contrats (
+              contrat_id VARCHAR(10) PRIMARY KEY,
+              client_id VARCHAR(10),
+              produit VARCHAR(50),
+              prime_annuelle DECIMAL(10,2),
+              date_debut DATE,
+              date_fin DATE,
+              statut VARCHAR(20)
+          );
+          
+          CREATE TABLE silver.sinistres (
+              sinistre_id VARCHAR(10) PRIMARY KEY,
+              contrat_id VARCHAR(10),
+              client_id VARCHAR(10),
+              type_sinistre VARCHAR(50),
+              montant DECIMAL(10,2),
+              date_declaration DATE,
+              statut VARCHAR(20)
+          );
+          
+          INSERT INTO silver.clients VALUES
+          ('C001', 'Dupont', 'Jean', 'jean.dupont@email.com', '10 rue de Paris', '1985-03-15', NOW()),
+          ('C002', 'Martin', 'Marie', 'marie.martin@email.com', '25 avenue de la Gare', '1990-07-22', NOW());
+          
+          INSERT INTO silver.contrats VALUES
+          ('CT001', 'C001', 'Auto', 850.00, '2023-01-01', '2024-01-01', 'actif'),
+          ('CT002', 'C001', 'Habitation', 450.00, '2023-03-15', '2024-03-15', 'actif'),
+          ('CT003', 'C002', 'Auto', 920.00, '2023-02-01', '2024-02-01', 'actif');
+          
+          INSERT INTO silver.sinistres VALUES
+          ('S001', 'CT001', 'C001', 'Accident', 2500.00, '2023-06-15', 'clos'),
+          ('S002', 'CT003', 'C002', 'Vol', 8000.00, '2023-08-20', 'en_cours');
+          EOF
+
+      - name: Install dbt packages
+        run: dbt deps
+
+      - name: Seed
+        run: dbt seed
+
+      - name: Run dbt
+        run: dbt run
+
+      - name: Test dbt
+        run: dbt test
