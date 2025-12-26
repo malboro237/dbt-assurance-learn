@@ -3,4 +3,4 @@ dbt_packages/
 logs/
 .env
 *.pyc
-__pycache__/
+__pycache__/profiles.yml
