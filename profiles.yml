@@ -4,7 +4,8 @@ assurance_learn:
     dev:
       type: postgres
       host: '{{ env_var("DBT_HOST", "host.docker.internal") }}'
-      port: {{ env_var("DBT_PORT", "5432") | int }}
+      # Use YAML int tag to ensure dbt receives an integer while keeping Jinja safe
+      port: !!int "{{ env_var('DBT_PORT', '5432') }}"
       user: '{{ env_var("DBT_USER", "postgres") }}'
       password: '{{ env_var("DBT_PASSWORD", "dbt") }}'
       dbname: '{{ env_var("DBT_DBNAME", "dbt_learn") }}'
