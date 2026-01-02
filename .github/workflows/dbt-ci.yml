@@ -48,15 +48,6 @@ jobs:
         working-directory: ./
         run: |
           dbt seed --profiles-dir . --target dev
-name: dbt CI
-
-on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
-
-jobs:
   dbt-test:
     runs-on: ubuntu-latest
 
@@ -90,7 +81,7 @@ jobs:
       - name: Create profiles.yml
         run: |
           mkdir -p ~/.dbt
-          echo "
+          cat > ~/.dbt/profiles.yml <<'YAML'
           assurance_learn:
             target: ci
             outputs:
@@ -103,11 +94,11 @@ jobs:
                 dbname: dbt_learn
                 schema: public
                 threads: 4
-          " > ~/.dbt/profiles.yml
+          YAML
 
       - name: Create source tables
         run: |
-          PGPASSWORD=dbt psql -h localhost -U postgres -d dbt_learn << EOF
+          PGPASSWORD=dbt psql -h localhost -U postgres -d dbt_learn << 'SQL'
           CREATE SCHEMA IF NOT EXISTS silver;
           
           CREATE TABLE silver.clients (
@@ -152,7 +143,7 @@ jobs:
           INSERT INTO silver.sinistres VALUES
           ('S001', 'CT001', 'C001', 'Accident', 2500.00, '2023-06-15', 'clos'),
           ('S002', 'CT003', 'C002', 'Vol', 8000.00, '2023-08-20', 'en_cours');
-          EOF
+          SQL
 
       - name: Install dbt packages
         run: dbt deps
