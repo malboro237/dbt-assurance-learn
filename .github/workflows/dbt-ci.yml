@@ -42,7 +42,8 @@ jobs:
       - name: Install dbt
         run: |
           python -m pip install --upgrade pip
-          pip install dbt-core==1.11.2 dbt-postgres==1.11.2
+          # Avoid pinning dbt-postgres to a version that may not be published on PyPI
+          pip install dbt-core==1.11.2 dbt-postgres
 
       - name: Run dbt seed
         working-directory: ./
@@ -50,6 +51,12 @@ jobs:
           dbt seed --profiles-dir . --target dev
   dbt-test:
     runs-on: ubuntu-latest
+    env:
+      DBT_HOST: 127.0.0.1
+      DBT_PORT: 5432
+      DBT_USER: postgres
+      DBT_PASSWORD: dbt
+      DBT_DBNAME: dbt_learn
 
     services:
       postgres:
