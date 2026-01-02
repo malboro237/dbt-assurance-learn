@@ -1,6 +1,56 @@
 name: dbt CI
 
 on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  dbt:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: dbt
+          POSTGRES_DB: dbt_learn
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d dbt_learn"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DBT_HOST: 127.0.0.1
+      DBT_PORT: 5432
+      DBT_USER: postgres
+      DBT_PASSWORD: dbt
+      DBT_DBNAME: dbt_learn
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dbt
+        run: |
+          python -m pip install --upgrade pip
+          pip install dbt-core==1.11.2 dbt-postgres==1.11.2
+
+      - name: Run dbt seed
+        working-directory: ./
+        run: |
+          dbt seed --profiles-dir . --target dev
+name: dbt CI
+
+on:
   pull_request:
     branches: [main]
   push:

@@ -24,3 +24,15 @@ The Airflow image is customized to include dbt and astronomer-cosmos; the compos
 - To avoid stale generated profiles, the compose setup clears `/tmp/cosmos/profile/*` on initialization and on webserver/scheduler startup.
 
 If you change the DB host or connection details, either update the `airflow-init` commands or clear `/tmp/cosmos/profile` so Cosmos regenerates the profiles from the current Airflow connection.
+
+### CI notes (GitHub Actions)
+
+- In CI (GitHub Actions) `host.docker.internal` is not available. Use environment variables to configure the DB host for dbt.
+- A sample workflow is provided in `.github/workflows/dbt-ci.yml` that starts a Postgres service and sets:
+	- `DBT_HOST=127.0.0.1`
+	- `DBT_PORT=5432`
+	- `DBT_USER=postgres`
+	- `DBT_PASSWORD=dbt`
+	- `DBT_DBNAME=dbt_learn`
+
+The `profiles.yml` in this repo uses `env_var(...)` for host/port/user/password/database so CI can override them safely.

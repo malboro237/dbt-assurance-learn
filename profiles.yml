@@ -3,11 +3,11 @@ assurance_learn:
   outputs:
     dev:
       type: postgres
-      host: host.docker.internal
-      port: 5432
-      user: postgres
-      password: dbt
-      dbname: dbt_learn
+      host: '{{ env_var("DBT_HOST", "host.docker.internal") }}'
+      port: '{{ env_var("DBT_PORT", 5432) }}'
+      user: '{{ env_var("DBT_USER", "postgres") }}'
+      password: '{{ env_var("DBT_PASSWORD", "dbt") }}'
+      dbname: '{{ env_var("DBT_DBNAME", "dbt_learn") }}'
       schema: public
       threads: 4
 
