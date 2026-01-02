@@ -1,0 +1,36 @@
+version: 2
+
+exposures:
+  - name: dashboard_sinistralite                          # ← Nom de l'exposure
+    description: "Dashboard Power BI suivi des sinistres" # ← Description
+    type: dashboard                                       # ← Type (dashboard, application, ml, analysis)
+    maturity: high                                        # ← Maturité (high, medium, low)
+    owner:                                                # ← Qui est responsable
+      name: Equipe BI
+      email: bi@foyer.lu
+    depends_on:                                           # ← Quelles tables sont utilisées
+      - ref('fct_sinistres')
+      - ref('dim_clients')
+
+  - name: dashboard_commercial
+    description: "Dashboard performance commerciale"
+    type: dashboard
+    maturity: high
+    owner:
+      name: Equipe BI
+      email: bi@foyer.lu
+    depends_on:
+      - ref('fct_contrats')
+      - ref('dim_clients')
+
+  - name: api_client_360
+    description: "API Client 360 pour le CRM"
+    type: application
+    maturity: medium
+    owner:
+      name: Equipe Dev
+      email: dev@foyer.lu
+    depends_on:
+      - ref('dim_clients')
+      - ref('fct_contrats')
+      - ref('fct_sinistres')

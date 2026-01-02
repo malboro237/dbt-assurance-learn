@@ -1,3 +1,13 @@
+{{
+    
+    config(
+    materialized='incremental',
+    unique_key='sinistre_id',
+    tags=['daily', 'critical', 'finance']
+)
+}}
+
+
 WITH sinistres AS (
     SELECT * FROM {{ ref('stg_sinistres') }}
 ),
@@ -32,4 +42,9 @@ FROM sinistres s
 LEFT JOIN contrats co ON s.contrat_id = co.contrat_id
 LEFT JOIN clients c ON s.client_id = c.client_id
 LEFT JOIN types t ON s.type_sinistre = t.type_sinistre
+
+
+{% if is_incremental() %}
+    WHERE s.sinistre_id NOT IN (SELECT sinistre_id FROM {{ this }})
+{% endif %}
 

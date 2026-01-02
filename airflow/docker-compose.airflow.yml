@@ -1,0 +1,120 @@
+services:
+  postgres-airflow:
+    image: postgres:15
+    container_name: postgres-airflow
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_airflow_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+
+  airflow-init:
+    image: assurance_learn/airflow:cosmos
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: airflow-init
+    depends_on:
+      postgres-airflow:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-airflow/airflow
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ../:/opt/airflow/dbt
+      - ../profiles.yml:/opt/airflow/dbt/profiles.yml:ro
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        # Image already includes required packages (astronomer-cosmos, dbt, psycopg2)
+        # Initialiser la base de données
+        airflow db migrate
+        # Créer l'utilisateur admin
+        airflow users create \
+          --username admin \
+          --password admin \
+          --firstname Admin \
+          --lastname User \
+          --role Admin \
+          --email admin@example.com || echo "User already exists"
+        # Ensure the dbt Postgres connection used by Cosmos is present and points to host.docker.internal
+        airflow connections add postgres_dbt \
+          --conn-type postgres \
+          --conn-host host.docker.internal \
+          --conn-login postgres \
+          --conn-password dbt \
+          --conn-schema dbt_learn \
+          --conn-port 5432 || echo "Connection postgres_dbt exists"
+        # Clear Cosmos profile cache to avoid stale profiles referencing old hosts
+        rm -rf /tmp/cosmos/profile/* || true
+        echo "✅ Initialization complete!"
+
+  airflow-webserver:
+    image: assurance_learn/airflow:cosmos
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: airflow-webserver
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-airflow/airflow
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ../:/opt/airflow/dbt
+      - ../profiles.yml:/opt/airflow/dbt/profiles.yml:ro
+    ports:
+      - "8081:8080"
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        # Clear Cosmos profile cache (avoid stale generated profiles) then start webserver
+        rm -rf /tmp/cosmos/profile/* || true
+        # Image already contains required packages
+        airflow webserver
+    restart: always
+
+  airflow-scheduler:
+    image: assurance_learn/airflow:cosmos
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: airflow-scheduler
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres-airflow/airflow
+      AIRFLOW__CORE__FERNET_KEY: ''
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ../:/opt/airflow/dbt
+      - ../profiles.yml:/opt/airflow/dbt/profiles.yml:ro
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        # Clear Cosmos profile cache (avoid stale generated profiles) then start scheduler
+        rm -rf /tmp/cosmos/profile/* || true
+        # Image already contains required packages
+        airflow scheduler
+    restart: always
+
+volumes:
+  postgres_airflow_data:

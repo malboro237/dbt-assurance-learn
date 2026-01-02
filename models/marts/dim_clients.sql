@@ -9,6 +9,7 @@ SELECT
     email,
     adresse,
     date_naissance,
+    {{ calcul_age('date_naissance') }} AS age,
     nb_contrats,
     prime_totale,
     CASE

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:15
@@ -16,10 +14,11 @@ services:
   dbt:
     build: .
     container_name: dbt-assurance
+    environment:
+      DBT_PROFILES_DIR: /root/.dbt
     volumes:
       - .:/dbt
-    environment:
-      DBT_PROFILES_DIR: /dbt
+      - ~/.dbt:/root/.dbt
     depends_on:
       - postgres
 

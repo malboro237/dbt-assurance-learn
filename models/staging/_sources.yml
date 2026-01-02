@@ -4,10 +4,23 @@ sources:
   - name: silver
     schema: silver
     description: "Tables sources préparées par Spark"
+    freshness:
+      warn_after:
+        count: 24
+        period: hour
+      error_after:
+        count: 48
+        period: hour
+
     tables:
       - name: clients
         description: "Clients"
+        loaded_at_field: date_creation      # ← CORRIGÉ (colonne de clients)
       - name: contrats
         description: "Contrats"
+        loaded_at_field: date_debut         # ← CORRIGÉ (colonne de contrats)
+        freshness: null                     # ← AJOUTÉ (désactive car c'est un DATE pas TIMESTAMP)
       - name: sinistres
         description: "Sinistres"
+        loaded_at_field: date_declaration
+        freshness: null                     # ← AJOUTÉ (désactive car c'est un DATE pas TIMESTAMP)

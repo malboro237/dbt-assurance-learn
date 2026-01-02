@@ -18,12 +18,18 @@ models:
     staging:
       +schema: staging
       +materialized: view
+      +tags:
+        - daily
     intermediate:
       +schema: intermediate
       +materialized: view
+      +tags:
+        - daily
     marts:
       +schema: gold
       +materialized: table
+      +tags:
+        - daily
 
 
 seeds:  
@@ -34,3 +40,11 @@ seeds:
 snapshots:  
   assurance_learn:
     +schema: snapshots
+    +tags:
+      - weekly
+
+
+tests:
+  assurance_learn:
+    +store_failures: true
+    +schema: test_failures

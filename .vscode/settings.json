@@ -1,0 +1,7 @@
+{
+    "dbt.queryLimit": 200,
+    "dbt.runModelCommandAdditionalParams": ["--full-refresh"],
+    "files.associations": {
+        "*.sql": "jinja-sql"
+    }
+}
