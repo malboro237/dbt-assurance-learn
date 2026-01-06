@@ -34,6 +34,21 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Debug: show profiles and env
+        run: |
+          echo "---- repo profiles.yml ----"
+          sed -n '1,200p' ./profiles.yml || true
+          echo "---- ~/.dbt/profiles.yml (if present) ----"
+          sed -n '1,200p' ~/.dbt/profiles.yml || true
+          echo "DBT env vars:"
+          echo "DBT_HOST=$DBT_HOST"
+          echo "DBT_PORT=$DBT_PORT"
+          python - <<'PY'
+import os
+v=os.getenv('DBT_PORT')
+print('DBT_PORT type:', type(v).__name__, 'value:', v)
+PY
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
