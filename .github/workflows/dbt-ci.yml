@@ -49,6 +49,37 @@ v=os.getenv('DBT_PORT')
 print('DBT_PORT type:', type(v).__name__, 'value:', v)
 PY
 
+      - name: Write CI profiles.yml
+        run: |
+          mkdir -p ~/.dbt
+          cat > ~/.dbt/profiles.yml <<'YAML'
+          assurance_learn:
+            target: dev
+            outputs:
+              dev:
+                type: postgres
+                host: ${DBT_HOST:-127.0.0.1}
+                port: ${DBT_PORT:-5432}
+                user: ${DBT_USER:-postgres}
+                password: ${DBT_PASSWORD:-dbt}
+                dbname: ${DBT_DBNAME:-dbt_learn}
+                schema: public
+                threads: 4
+          YAML
+
+      - name: Wait for Postgres
+        run: |
+          echo "Waiting for Postgres at ${DBT_HOST:-127.0.0.1}:${DBT_PORT:-5432}..."
+          export PGPASSWORD=${DBT_PASSWORD:-dbt}
+          for i in {1..30}; do
+            if psql -h ${DBT_HOST:-127.0.0.1} -U ${DBT_USER:-postgres} -p ${DBT_PORT:-5432} -d ${DBT_DBNAME:-dbt_learn} -c '\q' >/dev/null 2>&1; then
+              echo "Postgres ready"
+              break
+            fi
+            echo "Postgres not ready yet, retrying..."
+            sleep 2
+          done
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
