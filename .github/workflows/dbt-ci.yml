@@ -48,20 +48,26 @@ jobs:
       - name: Write CI profiles.yml
         run: |
           mkdir -p ~/.dbt
-          cat > ~/.dbt/profiles.yml <<'YAML'
+          # Use unquoted heredoc so shell variables are expanded, and coerce port to int
+          cat > ~/.dbt/profiles.yml <<YAML
           assurance_learn:
             target: dev
             outputs:
               dev:
                 type: postgres
                 host: ${DBT_HOST:-127.0.0.1}
-                port: ${DBT_PORT:-5432}
+                port: !!int ${DBT_PORT:-5432}
                 user: ${DBT_USER:-postgres}
                 password: ${DBT_PASSWORD:-dbt}
                 dbname: ${DBT_DBNAME:-dbt_learn}
                 schema: public
                 threads: 4
           YAML
+
+      - name: Show written ~/.dbt/profiles.yml
+        run: |
+          echo "---- written ~/.dbt/profiles.yml ----"
+          sed -n '1,200p' ~/.dbt/profiles.yml || true
 
       - name: Wait for Postgres
         run: |
