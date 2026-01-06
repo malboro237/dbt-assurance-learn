@@ -34,7 +34,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Debug: show profiles and env
+      - name: "Debug: show profiles and env"
         run: |
           echo "---- repo profiles.yml ----"
           sed -n '1,200p' ./profiles.yml || true
@@ -44,10 +44,10 @@ jobs:
           echo "DBT_HOST=$DBT_HOST"
           echo "DBT_PORT=$DBT_PORT"
           python - <<'PY'
-import os
-v=os.getenv('DBT_PORT')
-print('DBT_PORT type:', type(v).__name__, 'value:', v)
-PY
+            import os
+            v=os.getenv('DBT_PORT')
+            print('DBT_PORT type:', type(v).__name__, 'value:', v)
+          PY
 
       - name: Write CI profiles.yml
         run: |
