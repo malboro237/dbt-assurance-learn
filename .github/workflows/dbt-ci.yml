@@ -43,11 +43,7 @@ jobs:
           echo "DBT env vars:"
           echo "DBT_HOST=$DBT_HOST"
           echo "DBT_PORT=$DBT_PORT"
-          python - <<'PY'
-            import os
-            v=os.getenv('DBT_PORT')
-            print('DBT_PORT type:', type(v).__name__, 'value:', v)
-          PY
+          python -c "import os; v=os.getenv('DBT_PORT'); print('DBT_PORT type:', type(v).__name__, 'value:', v)"
 
       - name: Write CI profiles.yml
         run: |
@@ -94,7 +90,7 @@ jobs:
       - name: Run dbt seed
         working-directory: ./
         run: |
-          dbt seed --profiles-dir . --target dev
+          dbt seed --profiles-dir ~/.dbt --target dev
   dbt-test:
     runs-on: ubuntu-latest
     env:
@@ -199,13 +195,13 @@ jobs:
           SQL
 
       - name: Install dbt packages
-        run: dbt deps
+        run: dbt deps --profiles-dir ~/.dbt
 
       - name: Seed
-        run: dbt seed
+        run: dbt seed --profiles-dir ~/.dbt
 
       - name: Run dbt
-        run: dbt run
+        run: dbt run --profiles-dir ~/.dbt
 
       - name: Test dbt
-        run: dbt test
+        run: dbt test --profiles-dir ~/.dbt
